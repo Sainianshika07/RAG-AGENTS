@@ -7,6 +7,7 @@ import { ChunkViewer } from "@/components/ChunkViewer";
 import { EmbeddingVisualizer } from "@/components/EmbeddingVisualizer";
 import { ContextHighlighter } from "@/components/ContextHighlighter";
 import { StepCard } from "@/components/StepCard";
+import { ChatInterface } from "@/components/ChatInterface";
 import type { PipelineStep } from "@/lib/rag/graph";
 
 interface PipelineState {
@@ -53,6 +54,7 @@ export default function PipelinePage() {
 
   // JSON inspector
   const [showStateJson, setShowStateJson] = useState(false);
+  const [activeTab, setActiveTab] = useState<"inspector" | "chat">("inspector");
 
   const currentStep: PipelineStep = pipelineState?.currentStep || "idle";
 
@@ -195,24 +197,74 @@ export default function PipelinePage() {
       <div className="container">
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div style={{ marginBottom: "2.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)" }}>
-              🔬 RAG{" "}
-              <span className="gradient-text">Pipeline Explorer</span>
-            </h1>
-            {pipelineState && (
-              <button
-                id="pipeline-reset-btn"
-                onClick={resetPipeline}
-                className="btn btn-sm btn-secondary"
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <h1 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)" }}>
+                🔬 RAG{" "}
+                <span className="gradient-text">Pipeline & Chat Studio</span>
+              </h1>
+              {pipelineState && (
+                <button
+                  id="pipeline-reset-btn"
+                  onClick={resetPipeline}
+                  className="btn btn-sm btn-secondary"
+                >
+                  ↺ Reset
+                </button>
+              )}
+            </div>
+
+            {/* View Mode Switcher */}
+            {pipelineState?.documentVectorized && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  padding: "0.25rem",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border-subtle)",
+                }}
               >
-                ↺ Reset
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("inspector")}
+                  style={{
+                    padding: "0.45rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    background: activeTab === "inspector" ? "var(--brand-purple)" : "transparent",
+                    color: activeTab === "inspector" ? "#fff" : "var(--text-secondary)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  🔬 Pipeline Inspector
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("chat")}
+                  style={{
+                    padding: "0.45rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    background: activeTab === "chat" ? "var(--brand-purple)" : "transparent",
+                    color: activeTab === "chat" ? "#fff" : "var(--text-secondary)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  💬 Interactive Chat with Citations
+                </button>
+              </div>
             )}
           </div>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
             Welcome back, <strong style={{ color: "var(--text-primary)" }}>{session?.user?.name}</strong>. 
-            Upload a document and explore how RAG works from the inside.
+            Upload a document, inspect embeddings and chunking, or chat interactively with source citations.
           </p>
         </div>
 
@@ -259,6 +311,16 @@ export default function PipelinePage() {
 
           {/* ── Right: Main Work Area ─────────────────────────────────── */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {activeTab === "chat" && pipelineState?.namespaceId ? (
+              <ChatInterface
+                namespaceId={pipelineState.namespaceId}
+                documentName={selectedFile?.name || "Uploaded Document"}
+                kValue={kValue}
+              />
+            ) : null}
+
+            {activeTab === "inspector" && (
+              <>
             {/* Error display */}
             {error && (
               <div className="alert alert-error">
@@ -604,6 +666,8 @@ export default function PipelinePage() {
                   {JSON.stringify(pipelineState, null, 2)}
                 </pre>
               </div>
+            )}
+              </>
             )}
           </div>
         </div>
