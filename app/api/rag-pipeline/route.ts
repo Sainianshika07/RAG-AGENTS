@@ -27,6 +27,12 @@ export async function POST(request: NextRequest) {
 
     // Extract text from uploaded file
     if (documentFile) {
+      if (documentFile.size > 4.5 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: 'File exceeds 4.5MB limit. Please upload a smaller document.' },
+          { status: 413 }
+        );
+      }
       const fileType = documentFile.type;
       const buffer = await documentFile.arrayBuffer();
 

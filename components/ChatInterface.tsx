@@ -58,9 +58,11 @@ export function ChatInterface({ namespaceId, documentName, kValue }: ChatInterfa
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
       if (!res.ok) {
-        throw new Error(data.error || "Failed to get an answer");
+        throw new Error(data?.error || text.slice(0, 160) || "Failed to get an answer (HTTP " + res.status + ")");
       }
 
       const assistantMessage: ChatMessage = {

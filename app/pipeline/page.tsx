@@ -71,9 +71,10 @@ export default function PipelinePage() {
 
     try {
       const res = await fetch("/api/rag-pipeline", { method: "POST", body: form });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Pipeline failed");
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
+      if (!res.ok) throw new Error(data?.error || text.slice(0, 160) || "Pipeline failed (HTTP " + res.status + ")");
       setPipelineState(data.state);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -98,9 +99,10 @@ export default function PipelinePage() {
           resetContext: true,
         }),
       });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Query failed");
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
+      if (!res.ok) throw new Error(data?.error || text.slice(0, 160) || "Query failed (HTTP " + res.status + ")");
       setPipelineState(data.state);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -124,8 +126,10 @@ export default function PipelinePage() {
           resetContext: true,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Re-tune failed");
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
+      if (!res.ok) throw new Error(data?.error || text.slice(0, 160) || "Re-tune failed (HTTP " + res.status + ")");
       setPipelineState(data.state);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
