@@ -130,6 +130,30 @@ export default function LoginPage() {
                 "Sign in →"
               )}
             </button>
+            <div style={{ textAlign: 'center', margin: '0.5rem 0', color: 'var(--text-muted)', fontSize: '0.8rem' }}>or</div>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={async () => {
+                setLoading(true);
+                setError('');
+                const result = await signIn('credentials', {
+                  email: 'demo@ragagents.com',
+                  password: 'demo',
+                  redirect: false,
+                });
+                setLoading(false);
+                if (result?.error) {
+                  setError('Error signing in with demo account');
+                } else {
+                  router.push('/pipeline');
+                }
+              }}
+              style={{ width: '100%', justifyContent: 'center', background: 'rgba(255,255,255,0.06)' }}
+            >
+              🚀 Instant Demo Sign In (1-Click)
+            </button>
           </form>
         </div>
 
