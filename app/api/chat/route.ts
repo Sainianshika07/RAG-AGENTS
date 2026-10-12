@@ -1,14 +1,17 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { embedText, getGenerativeModel } from "@/lib/gemini";
 import { getPineconeIndex } from "@/lib/pinecone";
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const ChatSchema = z.object({
   namespaceId: z.string().min(1),
   message: z.string().min(1, "Message cannot be empty"),
   kValue: z.number().min(1).max(20).default(3),
+  sessionId: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,7 +30,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { namespaceId, message, kValue } = validated.data;
+    const { namespaceId, message, kValue, sessionId } = validated.data;
+    const startTime = Date.now();
 
     const queryVector = await embedText(message);
 

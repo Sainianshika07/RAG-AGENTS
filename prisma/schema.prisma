@@ -19,6 +19,7 @@ model User {
   updatedAt    DateTime  @updatedAt
   sessions     Session[]
   progress     Progress[]
+  chatSessions ChatSession[]
 }
 
 model Session {
@@ -37,4 +38,41 @@ model Progress {
   step         String   // "ingestion" | "retrieval" | "generation"
   stepData     String   // JSON blob of the state snapshot
   completedAt  DateTime @default(now())
+}
+
+model ChatSession {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  namespaceId String
+  title       String           @default("Document Exploration")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  messages    ChatMessage[]
+  evalMetrics RAGEvalMetrics[]
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role        String      // "user" | "assistant" | "system"
+  content     String
+  citations   String?     // JSON array of citation objects
+  createdAt   DateTime    @default(now())
+}
+
+model RAGEvalMetrics {
+  id              String      @id @default(cuid())
+  sessionId       String
+  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  query           String
+  faithfulness    Float       // 0.0 - 1.0
+  answerRelevance Float       // 0.0 - 1.0
+  contextRecall   Float       // 0.0 - 1.0
+  latencyMs       Int
+  topK            Int         @default(3)
+  embeddingModel  String      @default("text-embedding-004 (768D)")
+  generationModel String      @default("gemini-2.5-flash")
+  evaluatedAt     DateTime    @default(now())
 }
