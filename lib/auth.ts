@@ -1,3 +1,11 @@
+// Fallback for Vercel environments where NEXTAUTH_SECRET or NEXTAUTH_URL may not be explicitly set in project settings
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = 'rag-agents-super-production-secret-fallback-key-32chars';
+}
+if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  process.env.NEXTAUTH_URL = process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : "http://localhost:3000";
+}
+
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
