@@ -8,6 +8,7 @@ import { EmbeddingVisualizer } from "@/components/EmbeddingVisualizer";
 import { ContextHighlighter } from "@/components/ContextHighlighter";
 import { StepCard } from "@/components/StepCard";
 import { ChatInterface } from "@/components/ChatInterface";
+import { EvalMetricsDashboard } from "@/components/EvalMetricsDashboard";
 import type { PipelineStep } from "@/lib/rag/graph";
 
 interface PipelineState {
@@ -54,7 +55,7 @@ export default function PipelinePage() {
 
   // JSON inspector
   const [showStateJson, setShowStateJson] = useState(false);
-  const [activeTab, setActiveTab] = useState<"inspector" | "chat">("inspector");
+  const [activeTab, setActiveTab] = useState<"inspector" | "chat" | "metrics">("inspector");
 
   const currentStep: PipelineStep = pipelineState?.currentStep || "idle";
 
@@ -263,6 +264,23 @@ export default function PipelinePage() {
                 >
                   💬 Interactive Chat with Citations
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("metrics")}
+                  style={{
+                    padding: "0.45rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    background: activeTab === "metrics" ? "var(--brand-purple)" : "transparent",
+                    color: activeTab === "metrics" ? "#fff" : "var(--text-secondary)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  📊 Evaluation Metrics
+                </button>
               </div>
             )}
           </div>
@@ -322,6 +340,10 @@ export default function PipelinePage() {
                 kValue={kValue}
               />
             ) : null}
+
+            {activeTab === "metrics" && (
+              <EvalMetricsDashboard namespaceId={pipelineState?.namespaceId} />
+            )}
 
             {activeTab === "inspector" && (
               <>

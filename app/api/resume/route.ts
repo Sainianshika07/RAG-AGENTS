@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ragGraph, GraphState } from "@/lib/rag/graph";
-import { pipelineStore } from "../rag-pipeline/route";
+import { pipelineStore } from "@/lib/rag/store";
 import { z } from "zod";
 
 const ResumeSchema = z.object({

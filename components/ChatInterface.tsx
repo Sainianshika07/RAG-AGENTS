@@ -8,6 +8,12 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   citations?: RetrievedChunk[];
+  metrics?: {
+    faithfulness: number;
+    answerRelevance: number;
+    contextRecall: number;
+    latencyMs: number;
+  };
   timestamp: number;
 }
 
@@ -18,6 +24,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ namespaceId, documentName, kValue }: ChatInterfaceProps) {
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -55,6 +62,7 @@ export function ChatInterface({ namespaceId, documentName, kValue }: ChatInterfa
           namespaceId,
           message: trimmed,
           kValue,
+          sessionId,
         }),
       });
 
@@ -65,11 +73,16 @@ export function ChatInterface({ namespaceId, documentName, kValue }: ChatInterfa
         throw new Error(data?.error || text.slice(0, 160) || "Failed to get an answer (HTTP " + res.status + ")");
       }
 
+      if (data.sessionId) {
+        setSessionId(data.sessionId);
+      }
+
       const assistantMessage: ChatMessage = {
         id: "msg-" + Date.now() + "-a",
         role: "assistant",
         content: data.answer,
         citations: data.citations || [],
+        metrics: data.metrics,
         timestamp: Date.now(),
       };
 
@@ -170,14 +183,31 @@ export function ChatInterface({ namespaceId, documentName, kValue }: ChatInterfa
               {msg.content}
             </div>
 
-            {msg.role === "assistant" && msg.citations && msg.citations.length > 0 && (
+            {msg.role === "assistant" && (
               <div style={{ maxWidth: "82%", width: "100%", marginTop: "0.2rem" }}>
-                <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem", marginBottom: "0.1rem" }}>
-                  📚 Grounded Sources ({msg.citations.length} retrieved chunks):
-                </div>
-                {msg.citations.map((c) => (
-                  <CitationCard key={c.id || c.chunkIndex} citation={c} />
-                ))}
+                {msg.metrics && (
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.4rem", marginBottom: "0.3rem", fontSize: "0.72rem" }}>
+                    <span style={{ padding: "0.15rem 0.5rem", borderRadius: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
+                      🎯 Faithfulness: {(msg.metrics.faithfulness * 100).toFixed(0)}%
+                    </span>
+                    <span style={{ padding: "0.15rem 0.5rem", borderRadius: "4px", background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                      ⚡ Relevance: {(msg.metrics.answerRelevance * 100).toFixed(0)}%
+                    </span>
+                    <span style={{ padding: "0.15rem 0.5rem", borderRadius: "4px", background: "rgba(168, 85, 247, 0.15)", color: "#c084fc", border: "1px solid rgba(168, 85, 247, 0.3)" }}>
+                      ⏱️ {msg.metrics.latencyMs}ms
+                    </span>
+                  </div>
+                )}
+                {msg.citations && msg.citations.length > 0 && (
+                  <>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem", marginBottom: "0.1rem" }}>
+                      📚 Grounded Sources ({msg.citations.length} retrieved chunks):
+                    </div>
+                    {msg.citations.map((c) => (
+                      <CitationCard key={c.id || c.chunkIndex} citation={c} />
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </div>

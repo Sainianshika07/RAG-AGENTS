@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 // In-memory store for pipeline states (in production, use Redis)
 // Keyed by namespaceId / runId
-export const pipelineStore = new Map<string, GraphState>();
+import { pipelineStore } from "@/lib/rag/store";
 
 export async function POST(request: NextRequest) {
   try {
